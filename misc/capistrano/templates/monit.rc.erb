@@ -1,0 +1,16 @@
+check process <%= fetch(:application) %> with pidfile <%= current_path %>/tmp/pids/puma.pid
+  group railsapp
+  start program = "<%= fetch(:rvm_path) %>/bin/rvm-shell <%= fetch(:rvm_ruby_version) %> -c 'cd <%= current_path %> ; RAILS_ENV=<%= fetch(:rails_env) %> bundle exec puma -C <%= current_path %>/config/puma.rb -b unix:///var/lib/puma/<%= fetch(:application) %>.sock'" as uid rails and gid rails
+  stop program  = "<%= fetch(:rvm_path) %>/bin/rvm-shell <%= fetch(:rvm_ruby_version) %> -c 'cd <%= current_path %> ; RAILS_ENV=<%= fetch(:rails_env) %> bundle exec pumactl -P <%= current_path %>/tmp/pids/puma.pid stop'" as uid rails and gid rails
+  every 2 cycle
+  if failed unixsocket /var/lib/puma/<%= fetch(:application) %>.sock then restart
+  if 5 restarts within 5 cycles then timeout
+  depends on <%= fetch(:application) %>_sidekiq
+
+check process <%= fetch(:application) %>_sidekiq with pidfile <%= current_path %>/tmp/pids/sidekiq.pid
+  group railsapp
+  start program = "<%= fetch(:rvm_path) %>/bin/rvm-shell <%= fetch(:rvm_ruby_version) %> -c 'cd <%= current_path %> ; RAILS_ENV=<%= fetch(:rails_env) %> bundle exec sidekiq -C <%= current_path %>/config/sidekiq.yml -P <%= current_path %>/tmp/pids/sidekiq.pid'" as uid rails and gid rails
+  stop program  = "<%= fetch(:rvm_path) %>/bin/rvm-shell <%= fetch(:rvm_ruby_version) %> -c 'cd <%= current_path %> ; RAILS_ENV=<%= fetch(:rails_env) %> bundle exec sidekiqctl stop <%= current_path %>/tmp/pids/puma.pid'" as uid rails and gid rails
+  every 2 cycle
+  if 5 restarts within 5 cycles then timeout
+

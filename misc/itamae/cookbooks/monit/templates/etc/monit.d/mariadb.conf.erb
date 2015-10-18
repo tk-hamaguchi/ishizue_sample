@@ -1,0 +1,8 @@
+<%- if node[:mariadb] && node[:mariadb][:version].to_i == 10 -%>
+check process mariadb with pidfile /var/run/mariadb/mariadb.pid
+  start program = "/sbin/service mysql start"
+  stop program = "/sbin/service mysql stop"
+  if failed unixsocket /var/lib/mysql/mysql.sock then restart
+  if 5 restarts within 5 cycles then timeout
+  group db
+<%- end -%>

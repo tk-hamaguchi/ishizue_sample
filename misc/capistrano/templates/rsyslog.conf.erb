@@ -1,0 +1,7 @@
+!<%= fetch(:application) %>_rails
+*.* /var/log/<%= fetch(:application) %>/production.log
+& ~
+
+!<%= fetch(:application) %>
+*.* /var/log/<%= fetch(:application) %>/<%= fetch(:application) %>.log
+& ~
